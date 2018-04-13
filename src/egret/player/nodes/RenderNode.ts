@@ -60,7 +60,11 @@ namespace egret.sys {
         /**
          * Mesh 节点
          */
-        MeshNode
+        MeshNode,
+        /**
+         * 批量渲染节点
+         */
+        BatchNode
     }
 
     /**

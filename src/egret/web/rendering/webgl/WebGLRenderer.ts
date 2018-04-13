@@ -706,6 +706,62 @@ namespace egret.web {
                 case sys.RenderNodeType.MeshNode:
                     this.renderMesh(<sys.MeshNode>node, buffer);
                     break;
+                case sys.RenderNodeType.BatchNode:
+                    this.renderBatchBitmap(<sys.BatchNode>node, buffer);
+                    break;
+            }
+        }
+
+        /**
+         * @private
+         */
+        private renderBatchBitmap(node: sys.BatchNode, buffer: WebGLRenderBuffer): void {
+            let image = node.image;
+            if (!image) {
+                return;
+            }
+            //buffer.imageSmoothingEnabled = node.smoothing;
+            let data = node.drawData;
+            let length = data.length;
+            let pos = 0;
+            let m = node.matrix;
+            let blendMode = node.blendMode;
+            let alpha = node.alpha;
+            if (m) {
+                buffer.saveTransform();
+                buffer.transform(m.a, m.b, m.c, m.d, m.tx, m.ty);
+            }
+            //这里不考虑嵌套
+            if (blendMode) {
+                buffer.context.setGlobalCompositeOperation(blendModes[blendMode]);
+            }
+            let originAlpha: number;
+            if (alpha == alpha) {
+                originAlpha = buffer.globalAlpha;
+                buffer.globalAlpha *= alpha;
+            }
+            if (node.filter) {
+                buffer.context.$filter = node.filter;
+                while (pos < length) {
+                    buffer.context.drawImage(image, data[pos++], data[pos++], data[pos++], data[pos++],
+                        data[pos++], data[pos++], data[pos++], data[pos++], node.imageWidth, node.imageHeight, node.rotated, node.smoothing);
+                }
+                buffer.context.$filter = null;
+            }
+            else {
+                while (pos < length) {
+                    buffer.context.drawImage(image, data[pos++], data[pos++], data[pos++], data[pos++],
+                        data[pos++], data[pos++], data[pos++], data[pos++], node.imageWidth, node.imageHeight, node.rotated, node.smoothing);
+                }
+            }
+            if (blendMode) {
+                buffer.context.setGlobalCompositeOperation(defaultCompositeOp);
+            }
+            if (alpha == alpha) {
+                buffer.globalAlpha = originAlpha;
+            }
+            if (m) {
+                buffer.restoreTransform();
             }
         }
 

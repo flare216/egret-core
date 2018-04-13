@@ -1,6 +1,7 @@
 bin-debug/
 node_modules/
 .idea/
+.vscode/
 tools/node_modules
 src/egret/**/*.js
 src/egret/**/**/*.js
