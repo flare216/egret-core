@@ -77,6 +77,9 @@ namespace egret.sys{
          * 
          */
         public render(): void{
+            if(!this.drawList){
+                return;
+            }
             let l = this.drawList.length / 8;
             for(let i = 0; i < l;i++){
                 let start = i * 8;

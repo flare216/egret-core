@@ -10582,6 +10582,20 @@ var egret;
                 egret.BitmapData.$addDisplayObject(this, bitmapData);
             }
         };
+        BitmapBatch.prototype.$cacheAsBitmapChanged = function () {
+            _super.prototype.$cacheAsBitmapChanged.call(this);
+            if (this.$displayList) {
+                this.$displayList.isBatchNode = true;
+            }
+        };
+        /**
+         * 释放由cacheAsBitmap生成的缓存位图
+         */
+        BitmapBatch.prototype.dispose = function () {
+            if (this.$displayList && this.$displayList.$renderNode) {
+                this.$displayList.$renderNode.image.$dispose();
+            }
+        };
         /**
          * @private
          * 显示对象从舞台移除
@@ -10606,6 +10620,12 @@ var egret;
          */
         BitmapBatch.prototype.addData = function (sourceX, sourceY, sourceW, sourceH, drawX, drawY, drawW, drawH) {
             this.$renderNode.addData(sourceX, sourceY, sourceW, sourceH, drawX, drawY, drawW, drawH);
+        };
+        BitmapBatch.prototype.$getOriginalBounds = function () {
+            var bounds = _super.prototype.$getOriginalBounds.call(this);
+            bounds.width = this.width;
+            bounds.height = this.height;
+            return bounds;
         };
         /**
          * @private
@@ -13321,6 +13341,10 @@ var egret;
              */
             function DisplayList(root) {
                 var _this = _super.call(this) || this;
+                /**
+                 * 是否是批处理节点
+                 */
+                _this.isBatchNode = false;
                 _this.isStage = false;
                 /**
                  * 位图渲染节点
@@ -13560,10 +13584,12 @@ var egret;
                             this.bitmapData.width = width;
                             this.bitmapData.height = height;
                         }
+                        var sx = this.isBatchNode ? 1 : this.$canvasScaleX;
+                        var sy = this.isBatchNode ? 1 : this.$canvasScaleY;
                         renderNode.image = this.bitmapData;
                         renderNode.imageWidth = width;
                         renderNode.imageHeight = height;
-                        renderNode.drawImage(0, 0, width, height, -this.offsetX, -this.offsetY, width / this.$canvasScaleX, height / this.$canvasScaleY);
+                        renderNode.drawImage(0, 0, width, height, -this.offsetX, -this.offsetY, width / sx, height / sy);
                     }
                 }
                 this.dirtyList = null;
@@ -13580,11 +13606,11 @@ var egret;
                 var oldOffsetX = this.offsetX;
                 var oldOffsetY = this.offsetY;
                 var bounds = this.root.$getOriginalBounds();
-                var scaleX = this.$canvasScaleX;
-                var scaleY = this.$canvasScaleY;
+                var scaleX = this.isBatchNode ? 1 : this.$canvasScaleX;
+                var scaleY = this.isBatchNode ? 1 : this.$canvasScaleY;
                 this.offsetX = -bounds.x;
                 this.offsetY = -bounds.y;
-                this.offsetMatrix.setTo(this.offsetMatrix.a, 0, 0, this.offsetMatrix.d, this.offsetX, this.offsetY);
+                this.offsetMatrix.setTo(this.isBatchNode ? 1 : this.offsetMatrix.a, 0, 0, this.isBatchNode ? 1 : this.offsetMatrix.d, this.offsetX, this.offsetY);
                 var buffer = this.renderBuffer;
                 //在chrome里，小等于256*256的canvas会不启用GPU加速。
                 var width = Math.max(257, bounds.width * scaleX);
@@ -15508,6 +15534,9 @@ var egret;
              *
              */
             BatchNode.prototype.render = function () {
+                if (!this.drawList) {
+                    return;
+                }
                 var l = this.drawList.length / 8;
                 for (var i = 0; i < l; i++) {
                     var start = i * 8;

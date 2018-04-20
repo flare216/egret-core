@@ -6925,6 +6925,11 @@ declare namespace egret {
          * 显示对象添加到舞台
          */
         $onAddToStage(stage: Stage, nestLevel: number): void;
+        $cacheAsBitmapChanged(): void;
+        /**
+         * 释放由cacheAsBitmap生成的缓存位图
+         */
+        dispose(): void;
         /**
          * @private
          * 显示对象从舞台移除
@@ -6942,6 +6947,7 @@ declare namespace egret {
          * @param drawH 绘制目标高度
          */
         addData(sourceX: number, sourceY: number, sourceW: number, sourceH: number, drawX: number, drawY: number, drawW: number, drawH: number): void;
+        $getOriginalBounds(): Rectangle;
         /**
          * @private
          */
@@ -9261,6 +9267,10 @@ declare namespace egret.sys {
      * 显示列表
      */
     class DisplayList extends HashObject implements sys.Renderable {
+        /**
+         * 是否是批处理节点
+         */
+        isBatchNode: boolean;
         /**
          * 创建一个DisplayList对象，若内存不足或无法创建RenderBuffer，将会返回null。
          */

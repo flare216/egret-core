@@ -39,7 +39,10 @@ namespace egret.sys {
      */
     export class DisplayList extends HashObject implements sys.Renderable {
 
-
+        /**
+         * 是否是批处理节点
+         */
+        public isBatchNode: boolean = false;
         /**
          * 创建一个DisplayList对象，若内存不足或无法创建RenderBuffer，将会返回null。
          */
@@ -312,10 +315,12 @@ namespace egret.sys {
                         this.bitmapData.width = width;
                         this.bitmapData.height = height;
                     }
+                    let sx = this.isBatchNode ? 1 : this.$canvasScaleX
+                    let sy = this.isBatchNode ? 1 : this.$canvasScaleY;
                     renderNode.image = this.bitmapData;
                     renderNode.imageWidth = width;
                     renderNode.imageHeight = height;
-                    renderNode.drawImage(0, 0, width, height, -this.offsetX, -this.offsetY, width / this.$canvasScaleX, height / this.$canvasScaleY);
+                    renderNode.drawImage(0, 0, width, height, -this.offsetX, -this.offsetY, width / sx, height / sy);
                 }
             }
 
@@ -342,11 +347,11 @@ namespace egret.sys {
             let oldOffsetX = this.offsetX;
             let oldOffsetY = this.offsetY;
             let bounds = this.root.$getOriginalBounds();
-            var scaleX = this.$canvasScaleX;
-            var scaleY = this.$canvasScaleY;
+            var scaleX = this.isBatchNode ? 1 :this.$canvasScaleX;
+            var scaleY = this.isBatchNode ? 1 : this.$canvasScaleY;
             this.offsetX = -bounds.x;
             this.offsetY = -bounds.y;
-            this.offsetMatrix.setTo(this.offsetMatrix.a, 0, 0, this.offsetMatrix.d, this.offsetX, this.offsetY);
+            this.offsetMatrix.setTo(this.isBatchNode ? 1 : this.offsetMatrix.a, 0, 0, this.isBatchNode ? 1 : this.offsetMatrix.d, this.offsetX, this.offsetY);
             let buffer = this.renderBuffer;
             //在chrome里，小等于256*256的canvas会不启用GPU加速。
             let width = Math.max(257, bounds.width * scaleX);

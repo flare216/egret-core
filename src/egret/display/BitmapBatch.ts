@@ -18,6 +18,22 @@ namespace egret {
             }
         }
 
+        $cacheAsBitmapChanged(): void{
+            super.$cacheAsBitmapChanged();
+            if(this.$displayList){
+                this.$displayList.isBatchNode = true;
+            }
+        }
+
+        /**
+         * 释放由cacheAsBitmap生成的缓存位图
+         */
+        public dispose(): void{
+            if(this.$displayList && this.$displayList.$renderNode){
+                (<sys.BitmapNode>this.$displayList.$renderNode).image.$dispose();
+            }
+        }
+
         /**
          * @private
          * 显示对象从舞台移除
@@ -51,6 +67,13 @@ namespace egret {
                        drawW: number, 
                        drawH: number): void{
             (<sys.BatchNode>this.$renderNode).addData(sourceX, sourceY, sourceW, sourceH, drawX, drawY, drawW, drawH);
+        }
+
+        $getOriginalBounds(): Rectangle{
+            let bounds: Rectangle = super.$getOriginalBounds();
+            bounds.width = this.width;
+            bounds.height = this.height;
+            return bounds;
         }
 
         /**
